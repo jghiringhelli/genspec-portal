@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GenSpec.dev — Generative Specification Framework</title>
+  <meta name="description" content="The open quality gates registry for AI-assisted software development. 24 project archetypes. 100+ verification checks. Community-maintained." />
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --accent-dim: #1f3858;
+      --green: #3fb950;
+      --green-dim: #1a3626;
+      --orange: #d29922;
+      --orange-dim: #3d2e0e;
+      --red: #f85149;
+      --red-dim: #3d1b1b;
+      --purple: #bc8cff;
+      --purple-dim: #2d1f4e;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.6; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Layout ── */
+    header { border-bottom: 1px solid var(--border); padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; }
+    header .logo { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.5px; }
+    header .logo span { color: var(--accent); }
+    header nav a { color: var(--muted); margin-left: 24px; font-size: 0.9rem; }
+    header nav a:hover { color: var(--text); }
+
+    .hero { max-width: 900px; margin: 72px auto 56px; padding: 0 32px; text-align: center; }
+    .hero h1 { font-size: 2.8rem; font-weight: 800; letter-spacing: -1px; line-height: 1.15; margin-bottom: 20px; }
+    .hero h1 em { color: var(--accent); font-style: normal; }
+    .hero p { color: var(--muted); font-size: 1.15rem; max-width: 640px; margin: 0 auto 36px; }
+    .hero-stats { display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; }
+    .hero-stat { text-align: center; }
+    .hero-stat .num { font-size: 2rem; font-weight: 700; color: var(--accent); display: block; }
+    .hero-stat .lbl { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .cta-row { display: flex; gap: 12px; justify-content: center; margin-top: 36px; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; border: none; transition: opacity 0.15s; }
+    .btn:hover { opacity: 0.85; text-decoration: none; }
+    .btn-primary { background: var(--accent); color: #0d1117; }
+    .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+
+    /* ── Search ── */
+    .search-bar { max-width: 680px; margin: 0 auto 48px; padding: 0 32px; }
+    .search-bar input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 0.95rem; padding: 12px 18px; outline: none; }
+    .search-bar input:focus { border-color: var(--accent); }
+    .search-bar input::placeholder { color: var(--muted); }
+
+    /* ── Main grid ── */
+    .main { max-width: 1280px; margin: 0 auto; padding: 0 32px 80px; }
+    .section-title { font-size: 1.1rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+
+    /* ── Tag grid ── */
+    .tag-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 64px; }
+    .tag-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; cursor: pointer; transition: border-color 0.15s, transform 0.1s; }
+    .tag-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .tag-card.active { border-color: var(--accent); background: var(--accent-dim); }
+    .tag-name { font-family: var(--mono); font-size: 0.85rem; color: var(--accent); font-weight: 600; margin-bottom: 6px; }
+    .tag-meta { font-size: 0.8rem; color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; }
+    .tag-meta span { display: flex; align-items: center; gap: 4px; }
+    .tag-desc { font-size: 0.85rem; color: var(--muted); margin-top: 8px; }
+
+    /* ── Detail panel ── */
+    #detail { display: none; margin-bottom: 64px; }
+    #detail.visible { display: block; }
+    .detail-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+    .detail-header h2 { font-size: 1.6rem; font-weight: 700; }
+    .detail-header .close-btn { margin-left: auto; background: none; border: 1px solid var(--border); color: var(--muted); padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+    .detail-header .close-btn:hover { color: var(--text); border-color: var(--text); }
+
+    .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 24px; overflow-x: auto; }
+    .tab { padding: 10px 18px; font-size: 0.9rem; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; }
+    .tab:hover { color: var(--text); }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Blocks ── */
+    .block-list { display: flex; flex-direction: column; gap: 12px; }
+    .block-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; display: flex; align-items: flex-start; gap: 14px; }
+    .block-item .tier { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; margin-top: 2px; }
+    .tier-core { background: var(--red-dim); color: var(--red); }
+    .tier-recommended { background: var(--orange-dim); color: var(--orange); }
+    .tier-optional { background: var(--green-dim); color: var(--green); }
+    .block-info .block-title { font-weight: 600; font-size: 0.9rem; }
+    .block-info .block-id { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+    /* ── Phases ── */
+    .phase-list { display: flex; flex-direction: column; gap: 16px; }
+    .phase-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .phase-header { padding: 14px 18px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+    .phase-header:hover { background: rgba(255,255,255,0.03); }
+    .phase-title-row { display: flex; align-items: center; gap: 12px; }
+    .phase-name { font-weight: 600; font-size: 0.95rem; }
+    .phase-gate { font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; font-weight: 600; }
+    .gate-development { background: var(--green-dim); color: var(--green); }
+    .gate-pre-release { background: var(--orange-dim); color: var(--orange); }
+    .gate-rc { background: var(--red-dim); color: var(--red); }
+    .gate-production { background: var(--purple-dim); color: var(--purple); }
+    .gate-none { background: #1c2128; color: var(--muted); }
+    .phase-step-count { font-size: 0.8rem; color: var(--muted); }
+    .phase-chevron { color: var(--muted); transition: transform 0.2s; }
+    .phase-item.expanded .phase-chevron { transform: rotate(90deg); }
+    .phase-body { display: none; border-top: 1px solid var(--border); }
+    .phase-item.expanded .phase-body { display: block; }
+    .phase-rationale { padding: 12px 18px; font-size: 0.85rem; color: var(--muted); border-bottom: 1px solid var(--border); }
+
+    .step-list { padding: 12px 18px; display: flex; flex-direction: column; gap: 12px; }
+    .step-item { padding: 14px; background: var(--bg); border-radius: 6px; border: 1px solid var(--border); }
+    .step-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+    .step-id { font-family: var(--mono); font-size: 0.8rem; color: var(--accent); font-weight: 600; }
+    .step-owasp { font-size: 0.7rem; padding: 2px 7px; border-radius: 10px; background: var(--accent-dim); color: var(--accent); font-weight: 600; }
+    .step-human { font-size: 0.7rem; padding: 2px 7px; border-radius: 10px; background: var(--purple-dim); color: var(--purple); }
+    .step-instruction { font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; white-space: pre-wrap; }
+    .step-criterion { font-size: 0.8rem; background: var(--green-dim); color: var(--green); padding: 6px 10px; border-radius: 4px; font-family: var(--mono); }
+    .step-tools { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .step-tool { font-size: 0.75rem; background: var(--surface); border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; font-family: var(--mono); color: var(--muted); }
+
+    /* ── Hooks ── */
+    .hook-list { display: flex; flex-direction: column; gap: 10px; }
+    .hook-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+    .hook-trigger { font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; background: var(--orange-dim); color: var(--orange); font-weight: 600; white-space: nowrap; }
+    .hook-id { font-family: var(--mono); font-size: 0.85rem; font-weight: 600; }
+    .hook-title { font-size: 0.85rem; color: var(--muted); }
+
+    /* ── Contribute section ── */
+    .flywheel { background: linear-gradient(135deg, var(--accent-dim), var(--green-dim)); border: 1px solid var(--accent); border-radius: 12px; padding: 32px; margin-bottom: 64px; }
+    .flywheel h2 { font-size: 1.3rem; font-weight: 700; margin-bottom: 12px; }
+    .flywheel p { color: var(--muted); font-size: 0.95rem; max-width: 640px; margin-bottom: 20px; }
+    .flywheel-steps { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 24px; }
+    .flywheel-step { display: flex; align-items: flex-start; gap: 12px; flex: 1; min-width: 200px; }
+    .flywheel-num { width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #0d1117; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .flywheel-text { font-size: 0.875rem; color: var(--muted); }
+    .flywheel-text strong { color: var(--text); display: block; margin-bottom: 2px; }
+
+    /* ── Footer ── */
+    footer { border-top: 1px solid var(--border); padding: 32px; text-align: center; color: var(--muted); font-size: 0.85rem; }
+    footer a { color: var(--muted); }
+
+    /* ── No results ── */
+    .no-results { text-align: center; padding: 64px 32px; color: var(--muted); }
+    .no-results .big { font-size: 3rem; margin-bottom: 12px; }
+
+    @media (max-width: 640px) {
+      .hero h1 { font-size: 1.8rem; }
+      header { padding: 16px 20px; }
+      .main { padding: 0 20px 64px; }
+      .search-bar { padding: 0 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">gen<span>spec</span>.dev</div>
+  <nav>
+    <a href="#taxonomy">Taxonomy</a>
+    <a href="#contribute">Contribute</a>
+    <a href="https://github.com/jghiringhelli/forgecraft-mcp" target="_blank">GitHub ↗</a>
+  </nav>
+</header>
+
+<div class="hero" id="home">
+  <h1>Quality gates that<br /><em>compound</em> with every project</h1>
+  <p>The open registry of generalizable quality checks for AI-assisted development.
+     Method-first, tool-agnostic, community-maintained.</p>
+  <div class="hero-stats" id="hero-stats">
+    <div class="hero-stat"><span class="num" id="stat-tags">—</span><span class="lbl">Project archetypes</span></div>
+    <div class="hero-stat"><span class="num" id="stat-blocks">—</span><span class="lbl">Instruction blocks</span></div>
+    <div class="hero-stat"><span class="num" id="stat-gates">—</span><span class="lbl">Verification gates</span></div>
+    <div class="hero-stat"><span class="num" id="stat-hooks">—</span><span class="lbl">Pre-commit hooks</span></div>
+  </div>
+  <div class="cta-row">
+    <a href="https://www.npmjs.com/package/forgecraft-mcp" class="btn btn-primary" target="_blank">
+      ⚡ npx forgecraft-mcp setup_project .
+    </a>
+    <a href="https://github.com/jghiringhelli/forgecraft-mcp/issues/new?template=quality-gate-proposal.md" class="btn btn-secondary" target="_blank">
+      Propose a gate →
+    </a>
+  </div>
+</div>
+
+<div class="search-bar">
+  <input type="text" id="search" placeholder="Search tags, gates, hooks… (e.g. FINTECH, mutation, OWASP)" />
+</div>
+
+<div class="main">
+
+  <!-- Taxonomy -->
+  <div id="taxonomy">
+    <div class="section-title">Project Archetypes</div>
+    <div class="tag-grid" id="tag-grid">
+      <div style="color:var(--muted); padding: 32px; grid-column: 1/-1; text-align:center">Loading taxonomy…</div>
+    </div>
+  </div>
+
+  <!-- Detail panel -->
+  <div id="detail">
+    <div class="detail-header">
+      <div>
+        <div class="tag-name" id="detail-tag-name">—</div>
+        <h2 id="detail-title">—</h2>
+      </div>
+      <button class="close-btn" onclick="closeDetail()">✕ Close</button>
+    </div>
+    <div class="tabs" id="tabs"></div>
+    <div id="tab-panels"></div>
+  </div>
+
+  <!-- Flywheel / Contribute -->
+  <div class="flywheel" id="contribute">
+    <h2>🔁 The Quality Gates Flywheel</h2>
+    <p>Every project you build teaches you something that protects every project after it.
+       When you discover a gate that would have caught a bug — you can contribute it back,
+       and it becomes part of the registry for everyone.</p>
+    <div class="flywheel-steps">
+      <div class="flywheel-step">
+        <div class="flywheel-num">1</div>
+        <div class="flywheel-text">
+          <strong>Discover</strong>
+          You find a class of bug that a specific check would catch. You add it to <code>.forgecraft/project-gates.yaml</code> with <code>generalizable: true</code>.
+        </div>
+      </div>
+      <div class="flywheel-step">
+        <div class="flywheel-num">2</div>
+        <div class="flywheel-text">
+          <strong>Contribute</strong>
+          Run <code>forgecraft contribute-gate</code>. A GitHub issue is created with your gate definition and the real-world evidence of the bug it catches.
+        </div>
+      </div>
+      <div class="flywheel-step">
+        <div class="flywheel-num">3</div>
+        <div class="flywheel-text">
+          <strong>Review</strong>
+          Community reviews the gate. Evidence + method-agnostic definition required. No vendor preference. If it catches real bugs, it ships.
+        </div>
+      </div>
+      <div class="flywheel-step">
+        <div class="flywheel-num">4</div>
+        <div class="flywheel-text">
+          <strong>Compound</strong>
+          Merged gate ships to all users via registry. Contributors earn Pro credits. The methodology improves for everyone simultaneously.
+        </div>
+      </div>
+    </div>
+    <a href="https://github.com/jghiringhelli/forgecraft-mcp/issues/new?template=quality-gate-proposal.md"
+       class="btn btn-primary" target="_blank">Propose a quality gate →</a>
+    <a href="https://github.com/jghiringhelli/forgecraft-mcp/blob/main/CONTRIBUTING.md"
+       class="btn btn-secondary" target="_blank" style="margin-left:12px">Read the contribution guide</a>
+  </div>
+
+</div>
+
+<footer>
+  <p>
+    genspec.dev is the portal for the <a href="https://github.com/jghiringhelli/forgecraft-mcp" target="_blank">ForgeCraft-MCP</a> open-source project.
+    Built on the <a href="https://github.com/jghiringhelli/forgecraft-mcp/blob/main/docs/forgecraft-spec.md" target="_blank">Generative Specification methodology</a>.
+    <br /><br />
+    Conflict of interest disclosure: the author is the creator of ForgeCraft-MCP and the GS methodology.
+    The quality gates registry is community-governed. The methodology is tool-independent and can be practiced without ForgeCraft.
+  </p>
+</footer>
+
+<script>
+// ── Data loading ──────────────────────────────────────────────────────────────
+let taxonomy = null;
+let activeTag = null;
+let activeTab = 'blocks';
+let searchQuery = '';
+
+async function loadTaxonomy() {
+  try {
+    const res = await fetch('./taxonomy.json');
+    taxonomy = await res.json();
+    renderStats();
+    renderTagGrid(taxonomy.tags);
+  } catch (e) {
+    document.getElementById('tag-grid').innerHTML =
+      '<div style="color:var(--red);padding:32px;grid-column:1/-1">Failed to load taxonomy.json — make sure it is in the same directory as index.html.</div>';
+  }
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+function renderStats() {
+  const totalBlocks = taxonomy.tags.reduce((s, t) => s + t.instructionBlockCount, 0);
+  const totalGates = taxonomy.tags.reduce((s, t) =>
+    s + t.verificationPhases.reduce((ps, p) => ps + p.steps.length, 0), 0);
+  const totalHooks = taxonomy.tags.reduce((s, t) => s + t.hookCount, 0);
+  document.getElementById('stat-tags').textContent = taxonomy.tagCount;
+  document.getElementById('stat-blocks').textContent = totalBlocks;
+  document.getElementById('stat-gates').textContent = totalGates;
+  document.getElementById('stat-hooks').textContent = totalHooks;
+}
+
+// ── Tag descriptions (curated) ────────────────────────────────────────────────
+const TAG_DESCRIPTIONS = {
+  UNIVERSAL: 'Core standards that apply to every project regardless of domain',
+  API: 'RESTful and GraphQL API services with contract-first design',
+  'WEB-REACT': 'React applications with component architecture and state management',
+  FINTECH: 'Financial systems with transaction integrity and audit compliance',
+  HEALTHCARE: 'Healthcare systems with HIPAA compliance and PHI handling',
+  GAME: 'Game projects with generative asset pipelines and state machines',
+  ML: 'Machine learning projects with experiment tracking and model validation',
+  CLI: 'Command-line tools with exit codes, flags, and stdin/stdout contracts',
+  LIBRARY: 'Reusable packages with semver, public API surface, and backwards compatibility',
+  'DATA-PIPELINE': 'ETL and data transformation with lineage tracking',
+  MOBILE: 'iOS and Android applications with platform-specific quality gates',
+  'WEB3': 'Blockchain and smart contract projects with audit requirements',
+  REALTIME: 'WebSocket and event-driven systems with latency SLAs',
+  INFRA: 'Infrastructure-as-code with drift detection and rollback gates',
+  SOC2: 'SOC 2 Type II compliance gates for SaaS products',
+  HIPAA: 'HIPAA-specific audit trail and encryption enforcement',
+  'ZERO-TRUST': 'Zero-trust network architecture with identity verification at every boundary',
+  'STATE-MACHINE': 'Systems with explicit state transition contracts and lifecycle validation',
+  'DATA-LINEAGE': 'Data systems requiring field-level provenance tracking',
+  ANALYTICS: 'Analytics platforms with metric accuracy and query performance gates',
+  SOCIAL: 'Social platforms with content moderation and privacy controls',
+  'WEB-STATIC': 'Static sites with build pipeline, performance, and accessibility gates',
+  'OBSERVABILITY-XRAY': 'Distributed tracing and observability instrumentation',
+  'MEDALLION-ARCHITECTURE': 'Lakehouse bronze/silver/gold tier data quality contracts',
+};
+
+const TAG_ICONS = {
+  UNIVERSAL:'🏗️', API:'🔌', 'WEB-REACT':'⚛️', FINTECH:'💰', HEALTHCARE:'🏥',
+  GAME:'🎮', ML:'🧠', CLI:'⚡', LIBRARY:'📦', 'DATA-PIPELINE':'🔄',
+  MOBILE:'📱', 'WEB3':'⛓️', REALTIME:'⚡', INFRA:'☁️', SOC2:'🔒',
+  HIPAA:'🏥', 'ZERO-TRUST':'🛡️', 'STATE-MACHINE':'🔀', 'DATA-LINEAGE':'🔍',
+  ANALYTICS:'📊', SOCIAL:'👥', 'WEB-STATIC':'🌐', 'OBSERVABILITY-XRAY':'🔭',
+  'MEDALLION-ARCHITECTURE':'🏅',
+};
+
+// ── Tag grid ──────────────────────────────────────────────────────────────────
+function renderTagGrid(tags) {
+  const q = searchQuery.toLowerCase();
+  const filtered = q
+    ? tags.filter(t =>
+        t.tag.toLowerCase().includes(q) ||
+        (TAG_DESCRIPTIONS[t.tag] || '').toLowerCase().includes(q) ||
+        t.verificationPhases.some(p =>
+          p.steps.some(s =>
+            (s.instruction || '').toLowerCase().includes(q) ||
+            (s.id || '').toLowerCase().includes(q)
+          )
+        ) ||
+        t.instructionBlocks.some(b =>
+          (b.title || '').toLowerCase().includes(q) || (b.id || '').toLowerCase().includes(q)
+        )
+      )
+    : tags;
+
+  const grid = document.getElementById('tag-grid');
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div class="no-results" style="grid-column:1/-1">
+      <div class="big">🔍</div>
+      <div>No tags match "<strong>${q}</strong>"</div>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(t => {
+    const gateCount = t.verificationPhases.reduce((s, p) => s + p.steps.length, 0);
+    const isActive = activeTag === t.tag;
+    return `<div class="tag-card${isActive ? ' active' : ''}" onclick="selectTag('${t.tag}')">
+      <div class="tag-name">${TAG_ICONS[t.tag] || '📋'} ${t.tag}</div>
+      <div class="tag-desc">${TAG_DESCRIPTIONS[t.tag] || ''}</div>
+      <div class="tag-meta" style="margin-top:10px">
+        <span>📝 ${t.instructionBlockCount} blocks</span>
+        <span>✅ ${gateCount} gates</span>
+        <span>🪝 ${t.hookCount} hooks</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Detail panel ──────────────────────────────────────────────────────────────
+function selectTag(tag) {
+  activeTag = activeTag === tag ? null : tag;
+  renderTagGrid(taxonomy.tags);
+  if (!activeTag) { closeDetail(); return; }
+  const t = taxonomy.tags.find(x => x.tag === tag);
+  renderDetail(t);
+  document.getElementById('detail').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function closeDetail() {
+  activeTag = null;
+  document.getElementById('detail').classList.remove('visible');
+  document.getElementById('detail').style.display = 'none';
+  renderTagGrid(taxonomy.tags);
+}
+
+function renderDetail(t) {
+  const detail = document.getElementById('detail');
+  detail.style.display = 'block';
+  detail.classList.add('visible');
+  document.getElementById('detail-tag-name').textContent = TAG_ICONS[t.tag] + ' ' + t.tag;
+  document.getElementById('detail-title').textContent = TAG_DESCRIPTIONS[t.tag] || t.tag;
+
+  const gateCount = t.verificationPhases.reduce((s, p) => s + p.steps.length, 0);
+  const tabs = [
+    { id: 'blocks', label: `📝 Blocks (${t.instructionBlockCount})` },
+    { id: 'phases', label: `✅ Gates (${gateCount})` },
+    { id: 'hooks', label: `🪝 Hooks (${t.hookCount})` },
+  ];
+
+  document.getElementById('tabs').innerHTML = tabs.map(tab =>
+    `<div class="tab${activeTab === tab.id ? ' active' : ''}" onclick="switchTab('${tab.id}')">${tab.label}</div>`
+  ).join('');
+
+  document.getElementById('tab-panels').innerHTML = `
+    <div class="tab-panel${activeTab === 'blocks' ? ' active' : ''}" id="panel-blocks">${renderBlocks(t)}</div>
+    <div class="tab-panel${activeTab === 'phases' ? ' active' : ''}" id="panel-phases">${renderPhases(t)}</div>
+    <div class="tab-panel${activeTab === 'hooks' ? ' active' : ''}" id="panel-hooks">${renderHooks(t)}</div>
+  `;
+}
+
+function switchTab(tabId) {
+  activeTab = tabId;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  const tabs = document.querySelectorAll('.tab');
+  const idx = ['blocks','phases','hooks'].indexOf(tabId);
+  if (tabs[idx]) tabs[idx].classList.add('active');
+  const panel = document.getElementById('panel-' + tabId);
+  if (panel) panel.classList.add('active');
+}
+
+function renderBlocks(t) {
+  if (!t.instructionBlocks.length) return '<div style="color:var(--muted);padding:24px">No instruction blocks</div>';
+  return `<div class="block-list">${t.instructionBlocks.map(b => `
+    <div class="block-item">
+      <span class="tier tier-${b.tier}">${b.tier}</span>
+      <div class="block-info">
+        <div class="block-title">${b.title || b.id}</div>
+        <div class="block-id">${b.id}</div>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+function gateClass(gate) {
+  if (!gate) return 'gate-none';
+  if (gate === 'pre-release') return 'gate-pre-release';
+  if (gate === 'release-candidate') return 'gate-rc';
+  if (gate === 'production') return 'gate-production';
+  return 'gate-development';
+}
+function gateLabel(gate) {
+  const map = {
+    'pre-release':'PRE-RELEASE','release-candidate':'RELEASE CANDIDATE',
+    'production':'PRODUCTION'
+  };
+  return map[gate] || (gate ? gate.toUpperCase() : 'DEVELOPMENT');
+}
+
+function renderPhases(t) {
+  if (!t.verificationPhases.length) return '<div style="color:var(--muted);padding:24px">No verification phases</div>';
+  return `<div class="phase-list">${t.verificationPhases.map(p => {
+    const stepCount = p.steps ? p.steps.length : 0;
+    return `<div class="phase-item" id="phase-${p.id}">
+      <div class="phase-header" onclick="togglePhase('${p.id}')">
+        <div class="phase-title-row">
+          <span class="phase-name">${p.title || p.id}</span>
+          <span class="phase-gate ${gateClass(p.release_phase_gate)}">${gateLabel(p.release_phase_gate)}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <span class="phase-step-count">${stepCount} step${stepCount !== 1 ? 's' : ''}</span>
+          <span class="phase-chevron">▶</span>
+        </div>
+      </div>
+      <div class="phase-body">
+        ${p.rationale ? `<div class="phase-rationale">${p.rationale}</div>` : ''}
+        <div class="step-list">${(p.steps || []).map(s => renderStep(s)).join('')}</div>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function renderStep(s) {
+  const tools = Array.isArray(s.tools) ? s.tools : [];
+  return `<div class="step-item">
+    <div class="step-header">
+      <span class="step-id">${s.id}</span>
+      ${s.owasp_asvs_level ? `<span class="step-owasp">OWASP ASVS L${s.owasp_asvs_level}</span>` : ''}
+      ${s.requiresHumanReview ? `<span class="step-human">👤 Human review</span>` : ''}
+    </div>
+    ${s.instruction ? `<div class="step-instruction">${(s.instruction||'').trim().substring(0,400)}${(s.instruction||'').length > 400 ? '…' : ''}</div>` : ''}
+    ${s.passCriterion ? `<div class="step-criterion">✓ ${s.passCriterion}</div>` : ''}
+    ${tools.length ? `<div class="step-tools">${tools.map(t => `<span class="step-tool">${t}</span>`).join('')}</div>` : ''}
+  </div>`;
+}
+
+function renderHooks(t) {
+  if (!t.hooks.length) return '<div style="color:var(--muted);padding:24px">No hooks defined for this tag</div>';
+  return `<div class="hook-list">${t.hooks.map(h => `
+    <div class="hook-item">
+      <span class="hook-trigger">${h.trigger || 'pre-commit'}</span>
+      <div>
+        <div class="hook-id">${h.id}</div>
+        ${h.title ? `<div class="hook-title">${h.title}</div>` : ''}
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+function togglePhase(id) {
+  document.getElementById('phase-' + id)?.classList.toggle('expanded');
+}
+
+// ── Search ────────────────────────────────────────────────────────────────────
+document.getElementById('search').addEventListener('input', e => {
+  searchQuery = e.target.value;
+  closeDetail();
+  renderTagGrid(taxonomy ? taxonomy.tags : []);
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadTaxonomy();
+</script>
+</body>
+</html>

@@ -41,10 +41,10 @@ const CHECKS = [
     description: "Community gates section loaded (not stuck on loading state)",
   },
   {
-    id: "no-error-messages",
-    selector: "body",
-    check: (text) => !text.includes("Failed to load taxonomy.json"),
-    description: "No taxonomy load failure message",
+    id: "no-taxonomy-error",
+    selector: "#tag-grid",
+    check: (text) => !text.includes("Failed to load taxonomy"),
+    description: "Tag grid shows cards, not a load error (taxonomy.json present)",
   },
   {
     id: "flywheel-section",

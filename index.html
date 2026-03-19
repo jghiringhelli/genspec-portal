@@ -219,6 +219,14 @@
     <div id="tab-panels"></div>
   </div>
 
+  <!-- Community Gates (live from registry) -->
+  <div style="max-width:1100px;margin:0 auto 48px;padding:0 32px">
+    <div class="section-title" style="margin-bottom:20px">Community Gates — Live Registry</div>
+    <div id="community-gates" style="color:var(--muted);text-align:center;padding:32px">
+      Loading gates from registry…
+    </div>
+  </div>
+
   <!-- Flywheel / Contribute -->
   <div class="flywheel" id="contribute">
     <h2>🔁 The Quality Gates Flywheel</h2>
@@ -275,7 +283,10 @@
 
 <script>
 // ── Data loading ──────────────────────────────────────────────────────────────
+const REGISTRY_URL = 'https://raw.githubusercontent.com/jghiringhelli/quality-gates/master/index.json';
+
 let taxonomy = null;
+let communityGates = null;
 let activeTag = null;
 let activeTab = 'blocks';
 let searchQuery = '';
@@ -290,6 +301,62 @@ async function loadTaxonomy() {
     document.getElementById('tag-grid').innerHTML =
       '<div style="color:var(--red);padding:32px;grid-column:1/-1">Failed to load taxonomy.json — make sure it is in the same directory as index.html.</div>';
   }
+}
+
+async function loadCommunityGates() {
+  const container = document.getElementById('community-gates');
+  if (!container) return;
+  try {
+    const res = await fetch(REGISTRY_URL);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    communityGates = await res.json();
+    renderCommunityGates(communityGates);
+  } catch (e) {
+    container.innerHTML = `<div style="color:var(--muted);padding:16px;text-align:center">
+      Could not load live registry — <a href="${REGISTRY_URL}" target="_blank">view raw</a>
+    </div>`;
+  }
+}
+
+function renderCommunityGates(index) {
+  const container = document.getElementById('community-gates');
+  if (!container) return;
+  const byTag = {};
+  for (const gate of index.gates) {
+    const tags = gate.tags && gate.tags.length ? gate.tags : ['UNIVERSAL'];
+    for (const tag of tags) {
+      if (!byTag[tag]) byTag[tag] = [];
+      byTag[tag].push(gate);
+    }
+  }
+  const phaseColor = { development:'var(--green)', 'pre-release':'var(--orange)', rc:'var(--purple)', deployment:'var(--accent)', continuous:'var(--muted)' };
+  container.innerHTML = `
+    <div style="margin-bottom:12px;color:var(--muted);font-size:0.85rem">
+      ${index.gateCount} gates · last updated ${new Date(index.generatedAt).toLocaleDateString()} ·
+      <a href="https://github.com/jghiringhelli/quality-gates" target="_blank">contribute ↗</a>
+    </div>
+    ${Object.entries(byTag).map(([tag, gates]) => `
+      <div style="margin-bottom:20px">
+        <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px">
+          ${TAG_ICONS[tag] || '📋'} ${tag}
+        </div>
+        ${gates.map(g => `
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:8px">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+              <div>
+                <div style="font-weight:600;font-size:0.95rem;margin-bottom:4px">${g.title}</div>
+                <div style="color:var(--muted);font-size:0.85rem">${g.description.slice(0, 160).trim()}${g.description.length > 160 ? '…' : ''}</div>
+              </div>
+              <span style="white-space:nowrap;font-size:0.75rem;padding:3px 8px;border-radius:12px;background:${phaseColor[g.phase] || 'var(--muted)'}22;color:${phaseColor[g.phase] || 'var(--muted)'};border:1px solid ${phaseColor[g.phase] || 'var(--muted)'}44">
+                ${g.phase}
+              </span>
+            </div>
+            ${g.evidence ? `<details style="margin-top:10px"><summary style="font-size:0.8rem;color:var(--muted);cursor:pointer">Evidence</summary><div style="font-size:0.82rem;color:var(--muted);margin-top:6px;padding-left:12px;border-left:2px solid var(--border)">${g.evidence}</div></details>` : ''}
+          </div>
+        `).join('')}
+      </div>
+    `).join('')}
+  `;
 }
 
 // ── Stats ─────────────────────────────────────────────────────────────────────
@@ -526,6 +593,7 @@ document.getElementById('search').addEventListener('input', e => {
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 loadTaxonomy();
+loadCommunityGates();
 </script>
 </body>
 </html>

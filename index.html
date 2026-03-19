@@ -321,13 +321,12 @@ async function loadCommunityGates() {
 function renderCommunityGates(index) {
   const container = document.getElementById('community-gates');
   if (!container) return;
+  // Each gate appears once, under its first tag only — prevents multi-tag duplication
   const byTag = {};
   for (const gate of index.gates) {
-    const tags = gate.tags && gate.tags.length ? gate.tags : ['UNIVERSAL'];
-    for (const tag of tags) {
-      if (!byTag[tag]) byTag[tag] = [];
-      byTag[tag].push(gate);
-    }
+    const primaryTag = gate.tags && gate.tags.length ? gate.tags[0] : 'UNIVERSAL';
+    if (!byTag[primaryTag]) byTag[primaryTag] = [];
+    byTag[primaryTag].push(gate);
   }
   const phaseColor = { development:'var(--green)', 'pre-release':'var(--orange)', rc:'var(--purple)', deployment:'var(--accent)', continuous:'var(--muted)' };
   container.innerHTML = `

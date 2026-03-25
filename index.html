@@ -145,6 +145,12 @@
     .flywheel-text { font-size: 0.875rem; color: var(--muted); }
     .flywheel-text strong { color: var(--text); display: block; margin-bottom: 2px; }
 
+    /* ── Workflow diagram ── */
+    .workflow-section { max-width: 900px; margin: 0 auto 64px; padding: 0 32px; }
+    .workflow-section h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; }
+    .workflow-section > p { color: var(--muted); font-size: 0.95rem; margin-bottom: 28px; }
+    .mermaid { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 24px; overflow-x: auto; }
+
     /* ── Footer ── */
     footer { border-top: 1px solid var(--border); padding: 32px; text-align: center; color: var(--muted); font-size: 0.85rem; }
     footer a { color: var(--muted); }
@@ -167,6 +173,7 @@
   <div class="logo">gen<span>spec</span>.dev</div>
   <nav>
     <a href="#taxonomy">Taxonomy</a>
+    <a href="#workflow">Workflow</a>
     <a href="#contribute">Contribute</a>
     <a href="https://github.com/jghiringhelli/forgecraft-mcp" target="_blank">GitHub ↗</a>
   </nav>
@@ -224,6 +231,34 @@
     <div class="section-title" style="margin-bottom:20px">Community Gates — Live Registry</div>
     <div id="community-gates" style="color:var(--muted);text-align:center;padding:32px">
       Loading gates from registry…
+    </div>
+  </div>
+
+  <!-- Workflow diagram -->
+  <div class="workflow-section" id="workflow">
+    <h2>⚙️ The ForgeCraft Cycle</h2>
+    <p>From first commit to ship — every step governed by the spec, measured by quality gates.</p>
+    <div class="mermaid">
+flowchart TD
+    A["setup .<br/><small>npx forgecraft-mcp setup .</small>"] --> B["Phase 1 — Analyze<br/><small>Reads spec · infers tags</small>"]
+    B --> C{AI assistant\nin the loop?}
+    C -->|"Yes (MCP)"| D["Phase 2 — Calibrate<br/><small>LLM corrects tags from spec<br/>Writes forgecraft.yaml · CLAUDE.md<br/>PRD.md · hooks · ADR-000</small>"]
+    C -->|"No (CLI only)"| E["⚠️ CLI-only mode<br/><small>Directory heuristics only<br/>→ configure an AI assistant</small>"]
+    D --> F["check_cascade<br/><small>5-step readiness gate<br/>1 · Functional spec · 2 · Architecture<br/>3 · Constitution · 4 · ADRs · 5 · Use cases</small>"]
+    F --> G{All 5 passing?}
+    G -->|"Stubs / missing"| H["Fill artifacts<br/><small>docs/PRD.md · docs/adrs/<br/>docs/use-cases.md</small>"]
+    H --> F
+    G -->|"✅ All pass"| I["generate_session_prompt<br/><small>Bound context for next task</small>"]
+    I --> J["Implement with TDD<br/><small>RED → GREEN → REFACTOR<br/>+ Documentation Cascade</small>"]
+    J --> K["audit_project<br/><small>Score 0 – 100</small>"]
+    K --> L{Score ≥ 90?}
+    L -->|"Violations found"| M["WORKFLOWS.md remediation<br/><small>file_length · layer_violation<br/>hardcoded_url · missing_prd</small>"]
+    M --> J
+    L -->|"✅ Score ≥ 90"| N["close_cycle<br/><small>Re-check cascade · assess gates<br/>promote to registry · bump version</small>"]
+    N --> O{Roadmap\ncomplete?}
+    O -->|"More features"| I
+    O -->|"All done"| P["start_hardening<br/><small>Mutation tests · OWASP · load test</small>"]
+    P --> Q["🚢 Ship"]
     </div>
   </div>
 
@@ -593,6 +628,27 @@ document.getElementById('search').addEventListener('input', e => {
 // ── Init ──────────────────────────────────────────────────────────────────────
 loadTaxonomy();
 loadCommunityGates();
+</script>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      primaryColor: '#1f3858',
+      primaryTextColor: '#e6edf3',
+      primaryBorderColor: '#58a6ff',
+      lineColor: '#8b949e',
+      secondaryColor: '#161b22',
+      tertiaryColor: '#0d1117',
+      nodeBorder: '#30363d',
+      clusterBkg: '#161b22',
+      titleColor: '#e6edf3',
+      edgeLabelBackground: '#0d1117',
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+    }
+  });
 </script>
 </body>
 </html>
